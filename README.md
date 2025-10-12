@@ -23,16 +23,19 @@ Authentication: Secure user authentication and authorization (via DRF).
 
 
 Resource	HTTP Method	Endpoint	Description
-Cars	GET	/vehicles/	List/Search/Filter all available cars.
-POST	/vehicles/	Add a new car (requires admin/staff).
+Cars	
+GET	/vehicles/	List/Search/Filter all available cars.
+POST /vehicles/	Add a new car (requires admin/staff).
 PUT	/vehicles/{id}/	Update car details.
-DELETE	/vehicles/{id}/	Delete a car.
+DELETE  /vehicles/{id}/	Delete a car.
 GET	/vehicles/availability/	Check car availability for given dates.
-Rentals	GET	/rentals/	View all rental transactions (admin) or user's active rentals (user).
-POST	/rentals/	Book a car rental.
+Rentals	
+GET	/rentals/	View all rental transactions (admin) or user's active rentals (user).
+POST /rentals/	Book a car rental.
 PUT	/rentals/{id}/return/	Mark a car as returned.
 GET	/rentals/history/{user_id}/	Retrieve full rental history for a user.
-Users	POST	/users/register/	Register a new user.
+Users
+POST /users/register/	Register a new user.
 GET/PUT	/users/{id}/	View/Update user profile.
 
 3. Technology Stack
