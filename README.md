@@ -1,7 +1,6 @@
 🚗 Car Rental Service API
 A RESTful API developed with Django and Django REST Framework (DRF) to manage car inventory, handle rental bookings, track user activity, and provide essential backend services for a modern car rental platform.
 
-
 1. Features
 This API supports the following core functionalities:
 
