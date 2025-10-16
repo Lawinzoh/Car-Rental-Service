@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-=-ww@dct#+ur%(#az-j*xdbynl%1579gr2*@vyxlai8+a(z6wt'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['Lawinzoh.pythonanywhere.com', '127.0.0.1']
 
 
 # Application definition
@@ -41,7 +41,39 @@ INSTALLED_APPS = [
     'vehicles',
     'rentals',
     'rest_framework',
+    'django_filters',
+    'django_extensions',
+    'drf_spectacular',
 ]
+AUTH_USER_MODEL = 'users.User'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        # Enable JWT Token Authentication by default
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # Session authentication for the browsable API
+        'rest_framework.authentication.SessionAuthentication', 
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        # Restrict access by default (e.g., to read-only for unauthenticated users)
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ),
+    'DEFAULT_FILTER_BACKENDS': (
+        # ... your Week 3 filters ...
+        'django_filters.rest_framework.DjangoFilterBackend', 
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# Simple JWT Configuration (Set token lifespan)
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
