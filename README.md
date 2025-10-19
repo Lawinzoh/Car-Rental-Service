@@ -10,32 +10,39 @@ User Management: Registration and profile management for customers.
 
 Rental System: Dedicated endpoints for booking a car (with start/end dates) and managing returns.
 
-Availability Checks: Logic to prevent double bookings.
-
 History & Status: Retrieval of a user's current rentals and complete rental history.
 
 Search & Filter: Advanced querying of the car list by make, model, year, price, and availability.
 
-Authentication: Secure user authentication and authorization (via DRF).
+Secure Authentication: Token-based authentication using JWT (JSON Web Tokens).
 
 2. API Endpoints
 
 
-Resource	HTTP Method	Endpoint	Description
-Cars	
-GET	/vehicles/	List/Search/Filter all available cars.
-POST /vehicles/	Add a new car (requires admin/staff).
-PUT	/vehicles/{id}/	Update car details.
-DELETE  /vehicles/{id}/	Delete a car.
-GET	/vehicles/availability/	Check car availability for given dates.
+Resource	HTTP Method	Endpoint	Description   Access
+Vehicles
+GET	/vehicles/	List/Search/Filter all available cars.      Authenticated
+POST /vehicles/	Add a new car (requires admin/staff).       Admin
+PUT	/vehicles/{id}/	Update car details.     Admin
+DELETE  /vehicles/{id}/	Delete a car.       Admin
+GET	/vehicles/availability/	Check car availability for given dates.     Authenticated
+
+Filtering/Search Parameters (on GET /vehicles/)
+Parameter	Example	    Function
+search	?search=Honda       Searches make, model, and license_plate.
+make	?make=Toyota        Exact or partial match filter on vehicle make.
+year_min	?year_min=2020      Filters vehicles newer than or equal to 2020.
+ordering	?ordering=-rental_rate_per_day      Sorts results by field (e.g., descending price).
+
 Rentals	
-GET	/rentals/	View all rental transactions (admin) or user's active rentals (user).
-POST /rentals/	Book a car rental.
-PUT	/rentals/{id}/return/	Mark a car as returned.
-GET	/rentals/history/{user_id}/	Retrieve full rental history for a user.
+GET	/rentals/	View all rental transactions
+POST /rentals/	Book a car rental.      Authenticated
+PUT	/rentals/{id}/return_vehicle/	Mark a car as returned.     Authenticated
+GET	/rentals/history/{user_id}/	Retrieve full rental history for a user.        Authenticated (User can only view own history)
 Users
-POST /users/register/	Register a new user.
-GET/PUT	/users/{id}/	View/Update user profile.
+POST /users/	Register a new user.        Public
+GET  /users/	List all user accounts.     Admin
+GET/PUT	/users/{id}/	View/Update user profile.       Authenticated (User can only view/update self)
 
 3. Technology Stack
 Category	Technology	Purpose
@@ -46,9 +53,7 @@ Environment	Python 3.10+	Development environment.
 Testing	Postman	API validation and testing.
 
 
-
-
-6. Project Structure
+4. Project Structure
 The project is modularized into core functional apps:
 
 Car-Rental-Service/
@@ -58,18 +63,18 @@ Car-Rental-Service/
 ├── rentals/                   # Manages the Rental model and booking logic
 ├── manage.py                  # Django's command-line utility
 └── venv/                      # Virtual environment
-7. Timeline & Status
+5. Timeline & Status
 This project is being developed in a phased approach:
 
 Week	Feature Focus	Status
-1	Environment Setup, Model Creation (Car, User, Rental), Initial CRUD (Cars & Users).	[IN PROGRESS]
-2	Rental booking logic, Car Return functionality.	[TODO]
-3	Availability checks, Advanced Search & Filtering.	[TODO]
-4	User Authentication & Authorization (Permissions).	[TODO]
-5	Final Testing, Documentation (Swagger/DRF Docs), Deployment.	[TODO]
+1	Environment Setup, Model Creation (Car, User, Rental), Initial CRUD (Cars & Users).	[DONE]
+2	Rental booking logic, Car Return functionality.	[DONE]
+3	Availability checks, Advanced Search & Filtering.	[DONE]
+4	User Authentication & Authorization (Permissions).	[DONE]
+5	Final Testing, Documentation (Swagger/DRF Docs), Deployment.	[DONE]
 
 
-8. External API Integration
+1. External API Integration
 Future iterations will incorporate the following third-party services:
 
 Stripe: Payment processing for rental transactions.
