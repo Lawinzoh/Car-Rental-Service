@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from decouple import config  # To manage environment variables
+import stripe 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,6 +24,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY')
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
+STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY')
+
+#stripe initialization
+if STRIPE_SECRET_KEY:
+    stripe.api_key = STRIPE_SECRET_KEY
+else:
+    # Print a warning and allow development to continue.
+    print("⚠️ WARNING: STRIPE_SECRET_KEY not found in environment. Stripe endpoints will fail.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
