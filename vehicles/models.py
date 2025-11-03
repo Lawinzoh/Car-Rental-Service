@@ -8,6 +8,9 @@ class Vehicle(models.Model):
     license_plate = models.CharField(max_length=20, unique=True)
     availability_status = models.BooleanField(default=True)
     rental_rate_per_day = models.DecimalField(max_digits=10, decimal_places=2)
+    current_mileage = models.IntegerField(null=True, blank=True)
+    fuel_level = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    current_location = models.DecimalField(max_digits=255, decimal_places=6, null=True, blank=True)
 
     def __str__(self):
         return f"{self.make} {self.model} ({self.license_plate})"

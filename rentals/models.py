@@ -9,8 +9,8 @@ class Rental(models.Model):
     rental_start = models.DateTimeField()
     rental_end = models.DateTimeField()
     status = models.CharField(max_length=50, choices=[
-        ('active', 'Active (Unpaid/Pending)'), # Rental is active but not yet paid
-        ('confirmed', 'Confirmed (Paid)'), # Rental is confirmed and paid
+        ('active', 'Active (Unpaid/Pending)'),
+        ('confirmed', 'Confirmed (Paid)'),
         ('completed', 'Completed (Returned)'),
         ('cancelled', 'Cancelled')
     ], default='active'
@@ -20,3 +20,16 @@ class Rental(models.Model):
 
     def __str__(self):
         return f"{self.user.name}  - {self.vehicle.make} {self.vehicle.model}({self.rental_start} to {self.rental_end})"
+    
+# Damage Report
+class DamageReport(models.Model):
+    id = models.AutoField(primary_key=True)
+    rental = models.ForeignKey(Rental, on_delete=models.CASCADE, db_column='rental_id', related_name='damage_reports')
+    reporter = models.ForeignKey(User, on_delete=models.SET_NULL, db_column='reporter_id', related_name='damage_reporters', null=True, blank=True)
+    photo_url = models.URLField(max_length=200, null=True, blank=True)
+    description = models.TextField()
+    reported_at = models.DateTimeField(auto_now_add=True)   
+    is_resolved = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Damage Report for Rental {self.rental.id} by {self.reporter.name if self.reporter else 'Unknown'}"

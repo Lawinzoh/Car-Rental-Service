@@ -1,10 +1,15 @@
 from rest_framework.routers import DefaultRouter
-from .views import RentalViewSet
+from .views import RentalViewSet, DamageReportViewSet
+from django.urls import path
 
+# Damage Report Creation Endpoint: POST /reports/
+report_create_view = DamageReportViewSet.as_view({'post': 'create'})
+urlpatterns = [
+    path('reports/', report_create_view, name='damage-report-list'),
+]
 router = DefaultRouter()
-router.register(r'', RentalViewSet, basename='rental') #register the GET /rentals/ and POST /rentals/ endpoints
+router.register(r'reports', DamageReportViewSet, basename='damage-report')
+#rental route
+router.register(r'', RentalViewSet, basename='rental')
 
-# For the return endpoint (PUT /rentals/{id}/return/), we will add a custom action 
-# or a separate View/URL path next.
-
-urlpatterns = router.urls
+urlpatterns += router.urls

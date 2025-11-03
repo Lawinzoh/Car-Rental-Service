@@ -1,7 +1,7 @@
 from rest_framework import viewsets, mixins, status
 from rest_framework.response import Response
-from .models import Rental
-from .serializers import RentalSerializer
+from .models import Rental, DamageReport
+from .serializers import RentalSerializer, DamageReportSerializer
 from users.models import User
 from django.shortcuts import get_object_or_404
 from vehicles.models import Vehicle
@@ -104,7 +104,7 @@ class RentalViewSet(
         #D. Update Rental with payment intent details
         rental.total_cost = cost
         rental.payment_intent_id = intent.id
-        rental.status = 'confirmed'  # Payment successful, booking confirmed
+        rental.status = 'confirmed'
         rental.save()
         return Response({
             'detail': 'Checkout successful. Rental confirmed.',
@@ -151,3 +151,12 @@ class RentalViewSet(
             'rental': self.get_serializer(rental).data,
             'refund_status': refund_status_message
         }, status=status.HTTP_200_OK)
+    
+class DamageReportViewSet(
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    """Allows aunthenticated users to create new damage reports."""
+    queryset = DamageReport.objects.all().order_by('-reported_at')
+    serializer_class = DamageReportSerializer
+    permission_classes = [IsAuthenticated]

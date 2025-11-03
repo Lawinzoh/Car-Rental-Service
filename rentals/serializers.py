@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Rental
+from .models import Rental, DamageReport
 from vehicles.models import Vehicle
 from django.utils import timezone
 from users.models import User
@@ -36,3 +36,23 @@ class RentalSerializer(serializers.ModelSerializer):
         if overlapping_rentals:
             raise serializers.ValidationError(f'Vehicle {vehicle.license_plate} is already booked during this period.')
         return data
+    
+class DamageReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DamageReport
+        fields = ['id', 'rental', 'reporter', 'photo_url', 'description', 'reported_at', 'is_resolved']
+        read_only_fields = ['reporter','reported_at', 'is_resolved']
+
+        def validate_rental(self, value):
+            # Ensure the rental exists and is associated with the reporter
+            if not Rental.objects.filter(pk=value.pk).exists():
+                raise serializers.ValidationError('Invalid rental ID.')
+            return value
+        def create(self, validated_data):
+            user = self.context['request'].user
+
+            if user and user.is_authenticated:
+                validated_data['reporter'] = user
+            else:
+                raise serializers.ValidationError({'reporter': 'Authentication is required to report damage.'})
+            return super().create(validated_data)
