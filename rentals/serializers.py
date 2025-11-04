@@ -1,8 +1,9 @@
 from rest_framework import serializers
-from .models import Rental, DamageReport
+from .models import Rental, DamageReport, Review
 from vehicles.models import Vehicle
 from django.utils import timezone
 from users.models import User
+from django.db import IntegrityError
 
 class RentalSerializer(serializers.ModelSerializer):
     user_id = serializers.PrimaryKeyRelatedField(source='user', read_only=True)
@@ -56,3 +57,24 @@ class DamageReportSerializer(serializers.ModelSerializer):
             else:
                 raise serializers.ValidationError({'reporter': 'Authentication is required to report damage.'})
             return super().create(validated_data)
+        
+class ReviewSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='rental_id', read_only=True)
+    class Meta:
+        model = Review
+        fields = ['id', 'rental', 'rating', 'comment', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+    def validate_rental(self, value):
+            #Only allow reviews on completed rentals
+        if value.status != 'completed':
+            raise serializers.ValidationError('Cannot review an active or cancelled rental.')
+        return value
+    #prevent multiple reviews per rental
+    def create(self, validated_data):
+        try:
+        # Attempt to create the object
+            return super().create(validated_data)
+        except IntegrityError:
+            raise serializers.ValidationError({'rental':'This rental has already been reviewed.'})
+        

@@ -1,7 +1,7 @@
 from rest_framework import viewsets, mixins, status
 from rest_framework.response import Response
-from .models import Rental, DamageReport
-from .serializers import RentalSerializer, DamageReportSerializer
+from .models import Rental, DamageReport, Review
+from .serializers import RentalSerializer, DamageReportSerializer, ReviewSerializer
 from users.models import User
 from django.shortcuts import get_object_or_404
 from vehicles.models import Vehicle
@@ -9,7 +9,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from django.utils import timezone
 import stripe
-from .utils import calculate_rental_cost
+from .utils import calculate_rental_cost, is_vehicle_available_for_new_dates
+from datetime import datetime
 
 
 class RentalViewSet(
@@ -40,8 +41,8 @@ class RentalViewSet(
     def return_vehicle(self, request, pk=None):
         rental = self.get_object()
 
-        if rental.status != 'active':
-            return Response({'detail': 'This rental is not currently active.'}, status=status.HTTP_400_BAD_REQUEST)
+        if rental.status not in ['active', 'confirmed']:
+            return Response({'detail': 'This rental is not currently active or confirmed.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Update status to completed
         rental.status = 'completed'
@@ -152,6 +153,62 @@ class RentalViewSet(
             'refund_status': refund_status_message
         }, status=status.HTTP_200_OK)
     
+    #Extension logic
+    #PUT /rentals/{id}/extend/
+    @action(detail=True, methods=['put'], url_path='extend', permission_classes=[IsAuthenticated])
+    def extend_rental(self, request, pk=None):
+        rental = self.get_object()
+        new_end_date_str = request.data.get('new_rental_end')
+
+        if not new_end_date_str:
+            return Response({'detail': 'New rental end date is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        #A. Validation and date conversion
+        try:
+            new_end_date = datetime.strptime(new_end_date_str, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
+        except ValueError:
+            return Response({'detail': 'Invalid date format. Use ISO 8601 (YYYY-MM-DDTHH:MM:SSZ).'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if new_end_date <= rental.rental_end:
+            return Response({'detail': 'New end date must be after the current end date.'}, status=status.HTTP_400_BAD_REQUEST)
+        #B. Availability check for the extension period
+        if not is_vehicle_available_for_new_dates(rental.vehicle, rental.rental_end, new_end_date, exclude_rental_id=rental.id):
+            return Response({'detail': 'Vehicle is already booked during the requested extension period.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        #C. Calculate additional cost for the extension
+        if rental_rate_per_day is None:
+            return Response({'detail': 'Vehicle rental rate is missing.'}, status=status.HTTP_400_BAD_REQUEST)
+        rate_as_float = float(rental_rate_per_day)
+        extension_cost = calculate_rental_cost(rental.rental_end, new_end_date, rate_as_float)
+        #D. Process payment for the extension via Stripe
+        amount_in_cents = int(extension_cost * 100)
+        try:
+            intent = stripe.PaymentIntent.create(
+                amount = amount_in_cents,
+                currency = 'usd',
+                payment_method_types = ['card'],
+                metadata = {'rental_id': rental.id, 'user_id': rental.user.id, 'extension': 'true'}
+            )
+        except stripe.error.StripeError as e:
+            return Response({'detail': f'Stripe payment for extension failed: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+        #E. Update rental with new end date and adjusted total cost
+        current_total_cost = rental.total_cost if rental.total_cost is not None else Decimal('0.00')
+
+        # IMPORTANT: Ensure extension_cost is also treated as Decimal for safe addition
+        if not isinstance(extension_cost, Decimal):
+            extension_cost = Decimal(extension_cost)
+    
+        rental.total_cost = current_total_cost + extension_cost
+        rental.rental_end = new_end_date
+        rental.save()
+
+        return Response({
+            'detail': 'Rental successfully extended.',
+            'extension_cost': extension_cost,
+            'new_total_cost': rental.total_cost,
+            'new_rental_end': rental.rental_end
+        }, status=status.HTTP_200_OK)
+
+
 class DamageReportViewSet(
     mixins.CreateModelMixin,
     viewsets.GenericViewSet
@@ -159,4 +216,13 @@ class DamageReportViewSet(
     """Allows aunthenticated users to create new damage reports."""
     queryset = DamageReport.objects.all().order_by('-reported_at')
     serializer_class = DamageReportSerializer
+    permission_classes = [IsAuthenticated]
+
+class ReviewViewSet(
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    """Allows authenticated users to submit reviews for completed rentals."""
+    queryset = Review.objects.all().order_by('-created_at')
+    serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated]

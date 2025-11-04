@@ -1,6 +1,8 @@
 from django.db import models
 from users.models import User
 from vehicles.models import Vehicle
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models import Avg
 
 class Rental(models.Model):
     id = models.AutoField(primary_key=True)
@@ -16,10 +18,10 @@ class Rental(models.Model):
     ], default='active'
     )
     total_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True) # Total cost of the rental
-    payment_intent_id = models.CharField(max_length=50, null=True, blank=True, unique=True, help_text="Stripe Payment Intent ID") 
+    payment_intent_id = models.CharField(max_length=50, null=True, blank=True, unique=True, help_text='Stripe Payment Intent ID') 
 
     def __str__(self):
-        return f"{self.user.name}  - {self.vehicle.make} {self.vehicle.model}({self.rental_start} to {self.rental_end})"
+        return f'{self.user.name}  - {self.vehicle.make} {self.vehicle.model}({self.rental_start} to {self.rental_end})'
     
 # Damage Report
 class DamageReport(models.Model):
@@ -32,4 +34,16 @@ class DamageReport(models.Model):
     is_resolved = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Damage Report for Rental {self.rental.id} by {self.reporter.name if self.reporter else 'Unknown'}"
+        return f'Damage Report for Rental {self.rental.id} by {self.reporter.name if self.reporter else 'Unknown'}'
+    
+# Reviews
+class Review(models.Model):
+    rental = models.OneToOneField('Rental', on_delete=models.CASCADE, primary_key=True, related_name='review')
+    rating = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    comment = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Review for Rental {self.rental_id} ({self.rating} stars)'
