@@ -1,0 +1,45 @@
+
+services:
+  # 1. API Service (Your Django App)
+  web:
+    build: .  
+    container_name: carrental-web
+    command: sh -c "python manage.py collectstatic --no-input && python manage.py migrate && gunicorn CarRentalService.wsgi:application --bind 0.0.0.0:8000 --workers 5"
+    volumes:
+      - static_volume:/usr/src/app/staticfiles
+      - media_volume:/usr/src/app/mediafiles
+      - .:/usr/src/app 
+    env_file:
+      - .env 
+    depends_on:
+      - db 
+    
+  # 2. Database Service (Your PostgreSQL)
+  db:
+    container_name: carrental_postgres
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+# 3. Nginx Service(Reverse Proxy)
+  nginx:
+    image: nginx:stable-alpine
+    container_name: carrental-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - static_volume:/usr/src/app/staticfiles
+      - media_volume:/usr/src/app/mediafiles
+    depends_on:
+      - web
+
+#4. Docker Volumes
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:

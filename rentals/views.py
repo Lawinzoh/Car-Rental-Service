@@ -11,6 +11,7 @@ from django.utils import timezone
 import stripe
 from .utils import calculate_rental_cost, is_vehicle_available_for_new_dates
 from datetime import datetime
+from decimal import Decimal
 
 
 class RentalViewSet(
@@ -91,7 +92,7 @@ class RentalViewSet(
             return Response({'detail': f'Error calculating rental cost: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         #C. Create Stripe Payment Intent (Simulated here)
-        # Note: In a real app, the fronend sends a payment method ID or token to complete the payment
+        # Note: In a real app, the frontend sends a payment method ID or token to complete the payment
         try:
             intent = stripe.PaymentIntent.create(
                 amount = amount_in_cents,

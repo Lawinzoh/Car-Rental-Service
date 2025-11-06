@@ -34,7 +34,7 @@ class DamageReport(models.Model):
     is_resolved = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'Damage Report for Rental {self.rental.id} by {self.reporter.name if self.reporter else 'Unknown'}'
+        return f'Damage Report for Rental {self.rental.id} by {self.reporter.name if self.reporter else "Unknown"}'
     
 # Reviews
 class Review(models.Model):
