@@ -24,7 +24,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+def get_secret(secret_name):
+    """Retrieve secret from file for Docker secrets management."""
+    try:
+        with open(os.path.join('/run/secrets', secret_name)) as f:
+            return f.read().strip()
+    except IOError:
+        return None
+
+# 1. Retrieve SECRET_KEY from Docker secret  
+SECRET_KEY = get_secret('django_secret_key')
+
+if not SECRET_KEY:
+#read from environment variable as fallback
+    SECRET_KEY = config('SECRET_KEY')
+
+
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
 STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY')
 
@@ -43,21 +58,29 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(','
 
 # Application definition
 
-INSTALLED_APPS = [
+SHARED_APPS = [
+    'django_tenants',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'users',
-    'vehicles',
-    'rentals',
+    'users', 
     'rest_framework',
-    'django_filters',
-    'django_extensions',
     'drf_spectacular',
 ]
+
+TENANT_APPS = [
+    'vehicles',
+    'rentals',
+    'django_filters',
+    'django_extensions',
+]
+INSTALLED_APPS = SHARED_APPS + TENANT_APPS
+TENANT_MODEL = 'users.Client'
+TENANT_DOMAIN_MODEL = 'users.Domain'
+
 AUTH_USER_MODEL = 'users.User'
 
 REST_FRAMEWORK = {
@@ -89,6 +112,7 @@ SIMPLE_JWT = {
 }
 
 MIDDLEWARE = [
+    'django_tenants.middleware.TenantMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -118,13 +142,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'CarRentalService.wsgi.application'
 
+# 2. Update database connection
+#check if the secret exists
+DB_PASSWORD = get_secret('postgres_password')
+
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': config('DATABASE_URL', cast=db_url)
+    'default': {
+        'ENGINE': 'django_tenants.postgresql_backend',
+        'NAME': config('POSTGRES_DB'),
+        'USER': config('POSTGRES_USER'),
+        'PASSWORD': DB_PASSWORD if DB_PASSWORD else config('POSTGRES_PASSWORD'),
+        'HOST': config('POSTGRES_HOST', default='db'),
+        'PORT': config('POSTGRES_PORT', default='5432'),
+    }
 }
+DATABASE_ROUTERS = (
+    'django_tenants.routers.TenantSyncRouter',
+)
 
 
 # Password validation
