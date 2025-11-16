@@ -2,6 +2,8 @@ from rest_framework import viewsets, mixins, status
 from rest_framework.response import Response
 from .models import Rental, DamageReport, Review
 from .serializers import RentalSerializer, DamageReportSerializer, ReviewSerializer
+from .filters import UserRentalFilter
+from .permissions import IsRentalUserOrAdmin
 from users.models import User
 from django.shortcuts import get_object_or_404
 from vehicles.models import Vehicle
@@ -22,6 +24,7 @@ class RentalViewSet(
 ):
     queryset = Rental.objects.all().order_by('-rental_start')
     serializer_class = RentalSerializer
+    filter_backends = [UserRentalFilter]
 
     def perform_create(self, serializer):
 

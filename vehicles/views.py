@@ -1,7 +1,8 @@
 from rest_framework import viewsets, status, permissions
 from .models import Vehicle
 from .serializers import VehicleSeializer
-from .filters import VehicleFilter
+from .filters import VehicleFilter, OwnerFilter
+from .permissions import IsOwnerOrAdmin
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser
 from rentals.models import Rental
 from rest_framework.decorators import action
@@ -9,11 +10,12 @@ from rest_framework.response import Response
 
 
 class VehicleListView(viewsets.ModelViewSet):
-    queryset = Vehicle.objects.all() # Retrieve all vehicles(READ)
-    serializer_class = VehicleSeializer # Use the VehicleSerializer for serialization/deserialization
+    queryset = Vehicle.objects.all()
+    serializer_class = VehicleSeializer
 
     # 1. filtering, searching, and ordering
-    filterset_class = VehicleFilter # Use django-filters for filtering vehicles
+    filter_backends = [OwnerFilter]
+    filterset_class = VehicleFilter
     search_fields = ['make', 'model', 'year']
     ordering_fields = ['year', 'make', 'model', 'rental_rate_per_day']
 

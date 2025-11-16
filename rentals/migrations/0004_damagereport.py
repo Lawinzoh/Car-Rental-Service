@@ -9,7 +9,13 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('rentals', '0003_rental_payment_intent_id_rental_total_cost_and_more'),
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        # Explicit dependency on users.0002 ensures that the user model's
+        # schema changes (e.g. altering the PK) are applied before creating
+        # or altering tables that reference the user model. Using
+        # migrations.swappable_dependency(settings.AUTH_USER_MODEL) resolves
+        # to the first migration of the user app, which allowed an ordering
+        # where rentals ran before users.0002 and caused ALTER errors.
+        ('users', '0002_alter_user_options_alter_user_managers_and_more'),
     ]
 
     operations = [

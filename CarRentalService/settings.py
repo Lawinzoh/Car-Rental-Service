@@ -77,9 +77,11 @@ TENANT_APPS = [
     'django_filters',
     'django_extensions',
 ]
-INSTALLED_APPS = SHARED_APPS + TENANT_APPS
+
 TENANT_MODEL = 'users.Client'
 TENANT_DOMAIN_MODEL = 'users.Domain'
+
+INSTALLED_APPS = SHARED_APPS + TENANT_APPS
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -112,7 +114,7 @@ SIMPLE_JWT = {
 }
 
 MIDDLEWARE = [
-    'django_tenants.middleware.TenantMiddleware',
+    'CarRentalService.middleware.CustomTenantMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

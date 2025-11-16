@@ -4,7 +4,7 @@ services:
   web:
     build: .  
     container_name: carrental-web
-    command: sh -c "python manage.py collectstatic --no-input && python manage.py migrate && gunicorn CarRentalService.wsgi:application --bind 0.0.0.0:8000 --workers 5"
+    command: sh -c "python manage.py collectstatic --no-input && python manage.py migrate_schemas --shared && gunicorn CarRentalService.wsgi:application --bind 0.0.0.0:8000 --workers 5"
     volumes:
       - static_volume:/usr/src/app/staticfiles
       - media_volume:/usr/src/app/mediafiles
@@ -31,7 +31,7 @@ services:
     secrets:
       - postgres_password
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"] # Simpler check using default user
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5

@@ -7,7 +7,7 @@ from django.db.models import Avg
 class Rental(models.Model):
     id = models.AutoField(primary_key=True)
     user =models.ForeignKey(User, on_delete=models.CASCADE, db_column='user_id', related_name='rentals')
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, db_column='vehicle_id', related_name='rentals')
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, db_column='vehicle_id', related_name='rental_instances')
     rental_start = models.DateTimeField()
     rental_end = models.DateTimeField()
     status = models.CharField(max_length=50, choices=[

@@ -1,7 +1,16 @@
 from django.db import models
+from django.conf import settings
 
 class Vehicle(models.Model):
     id = models.AutoField(primary_key=True)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='owned_vehicles', 
+        null=True, 
+        blank=True,
+        help_text='User who owns/manages this vehicle'
+    )
     make = models.CharField(max_length=100)
     model = models.CharField(max_length=100)
     year = models.IntegerField()
