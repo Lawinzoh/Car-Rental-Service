@@ -52,10 +52,19 @@ env/
 *.sublime-project
 *.sublime-workspace
 
-# Testing
+# Testing & Documentation
 .pytest_cache/
 .coverage
 htmlcov/
+ENDPOINT_TEST_REPORT.md
+OWNER_ADMIN_GUIDE.md
+SYSTEM_ARCHITECTURE.md
+ARCHITECTURE_CONFIRMATION.md
+test_endpoints.ps1
+test_owner_endpoints.ps1
+create_tenants.py
+create_test_tenant.py
+list_tenants.py
 
 # Docker
 docker-compose.override.yml

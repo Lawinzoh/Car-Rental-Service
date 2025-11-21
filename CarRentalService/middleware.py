@@ -13,7 +13,7 @@ class CustomTenantMiddleware(BaseTenantMiddleware):
     in the public schema without requiring a tenant domain.
     """
     
-    PUBLIC_PATHS = ['/admin/', '/api/token/', '/api/token/refresh/', '/api/schema/']
+    PUBLIC_PATHS = ['/admin/', '/api/token/', '/api/token/refresh/', '/api/schema/', '/users/']
     
     def process_request(self, request):
         # Check if this is a request to a public path

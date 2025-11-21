@@ -16,6 +16,11 @@ class VehicleFilter(django_filters.FilterSet):
 
 class OwnerFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
+        # Allow staff/superuser to see all vehicles
         if request.user.is_staff or request.user.is_superuser:
             return queryset
-        return queryset.filter(owner=request.user)
+        # Allow authenticated users to see their own vehicles + public vehicles (owner=None)
+        if request.user.is_authenticated:
+            return queryset.filter(owner__in=[request.user, None])
+        # For anonymous users, only show vehicles with no owner
+        return queryset.filter(owner__isnull=True)
