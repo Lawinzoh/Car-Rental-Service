@@ -156,10 +156,12 @@ import dj_database_url
 
 # For Railway/production: use DATABASE_URL if available
 # For local development: use individual config variables
-if config('DATABASE_URL', default=None):
+DATABASE_URL = config('DATABASE_URL', default=None)
+
+if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.config(
-            default=config('DATABASE_URL'),
+            default=DATABASE_URL,
             conn_max_age=600,
         )
     }
@@ -169,9 +171,9 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django_tenants.postgresql_backend',
-            'NAME': config('POSTGRES_DB'),
-            'USER': config('POSTGRES_USER'),
-            'PASSWORD': DB_PASSWORD if DB_PASSWORD else config('POSTGRES_PASSWORD'),
+            'NAME': config('POSTGRES_DB', default='car_rental_db'),
+            'USER': config('POSTGRES_USER', default='postgres'),
+            'PASSWORD': DB_PASSWORD if DB_PASSWORD else config('POSTGRES_PASSWORD', default='password'),
             'HOST': config('POSTGRES_HOST', default='db'),
             'PORT': config('POSTGRES_PORT', default='5432'),
         }
@@ -236,3 +238,13 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,  # Django serves the UI, not the raw schema
 }
+
+# Security settings for production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_SECURITY_POLICY = {
+        'default-src': ("'self'",),
+    }
