@@ -217,8 +217,8 @@ USE_TZ = True
 
 CSRF_TRUSTED_ORIGINS = config(
     'CSRF_TRUSTED_ORIGINS', 
-    default='',
-    cast=lambda v: [s.strip() for s in v.split(',')]
+    default='https://car-rental-service.railway.app',
+    cast=lambda v: [s.strip() for s in v.split(',') if s.strip()]
 )
 
 # Static files (CSS, JavaScript, Images)
