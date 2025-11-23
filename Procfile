@@ -1,1 +1,1 @@
-web: python manage.py migrate --verbosity 2 && gunicorn CarRentalService.wsgi:application --bind 0.0.0.0:$PORT
+web: python manage.py fix_migrations && python manage.py migrate && gunicorn CarRentalService.wsgi:application --bind 0.0.0.0:$PORT
