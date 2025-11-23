@@ -9,8 +9,8 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('users', '0002_alter_user_options_alter_user_managers_and_more'),
-        ('vehicles', '0003_vehicle_owner'),
+        ('users', '0001_initial'),
+        ('vehicles', '0001_initial'),
     ]
 
     operations = [
