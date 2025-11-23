@@ -152,16 +152,31 @@ DB_PASSWORD = get_secret('postgres_password')
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django_tenants.postgresql_backend',
-        'NAME': config('POSTGRES_DB'),
-        'USER': config('POSTGRES_USER'),
-        'PASSWORD': DB_PASSWORD if DB_PASSWORD else config('POSTGRES_PASSWORD'),
-        'HOST': config('POSTGRES_HOST', default='db'),
-        'PORT': config('POSTGRES_PORT', default='5432'),
+import dj_database_url
+
+# For Railway/production: use DATABASE_URL if available
+# For local development: use individual config variables
+if config('DATABASE_URL', default=None):
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=config('DATABASE_URL'),
+            conn_max_age=600,
+        )
     }
-}
+    DATABASES['default']['ENGINE'] = 'django_tenants.postgresql_backend'
+else:
+    # Local development using docker-compose
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django_tenants.postgresql_backend',
+            'NAME': config('POSTGRES_DB'),
+            'USER': config('POSTGRES_USER'),
+            'PASSWORD': DB_PASSWORD if DB_PASSWORD else config('POSTGRES_PASSWORD'),
+            'HOST': config('POSTGRES_HOST', default='db'),
+            'PORT': config('POSTGRES_PORT', default='5432'),
+        }
+    }
+
 DATABASE_ROUTERS = (
     'django_tenants.routers.TenantSyncRouter',
 )
