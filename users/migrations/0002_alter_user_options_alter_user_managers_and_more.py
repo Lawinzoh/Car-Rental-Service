@@ -11,6 +11,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('auth', '0012_alter_user_first_name_max_length'),
         ('users', '0001_initial'),
+        ('vehicles', '0002_vehicle_current_location_vehicle_current_mileage_and_more'),
     ]
 
     operations = [
